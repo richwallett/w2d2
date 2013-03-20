@@ -5,23 +5,33 @@ load 'board.rb'
 
 
 class Chess
+  attr_accessor :board
+  def self.new_game
+    player1 = HumanPlayer.new(:white)
+    player2 = HumanPlayer.new(:black)
+    game = Chess.new
+    game.play(player1, player2)
+  end
 
   def initialize
     @board = Board.new
-    @player1 = HumanPlayer.new(:white)
-    @player2 = HumanPlayer.new(:black)
   end
 
-  def play
+  def play(player1, player2)
+    current_player, next_player = player1, player2
     until game_over?
       @board.display
-      move = @player1.move(@board)
-      # 3 queries piece to see if move is legal (check?)
-      @board.make_move(move, @player1.color)
-      # 2 updates the piece with new position
-      @player1, @player2 = @player2, @player1 #switch players, repeat
+      puts "Checkmate!  #{next_player.color} wins!" if @board.checkmate?(current_player.color)
+      move = current_player.move(@board)
+      unless @board.check?(move, current_player.color)
+        @board.make_move(move, current_player.color)
+      end
+
+      #check if next_player in check & if in checkmate, then end game.
+      current_player, next_player = next_player, current_player
     end
   end
+
 
   private
   def game_over?
@@ -38,17 +48,20 @@ class HumanPlayer
 
   def move(board)
     while true
+      puts "#{@color.capitalize} Player's turn:"
       move_string = ask_for_move
       move = parse_move(move_string)
-      return move if board.valid_move?(move,@color)
+      in_check = board.check?(move, @color)
+      return move if board.valid_move?(move,@color) && !in_check
       puts "Please enter a valid move, #{@color.capitalize} Player."
+      puts "(You are in check.)" if in_check
     end
   end
 
   private
 
   def ask_for_move
-    print "Enter move (e.g. 'a1 h5'): "
+    print "Enter move (e.g. 'b1 c3'): "
     gets.chomp
   end
 
@@ -66,5 +79,4 @@ class MoveNode
   #used to build move tree to caclulate check/mate
 end
 
-chess = Chess.new
-chess.play
+Chess.new_game

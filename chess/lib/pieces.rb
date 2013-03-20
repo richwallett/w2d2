@@ -1,40 +1,15 @@
-white = {}
-  white[:king] = "\u2654"
-  white[:queen] = "\u2655"
-  white[:rook] = "\u2656"
-  white[:bishop] = "\u2657"
-  white[:knight] = "\u2658"
-  white[:pawn] = "\u2659"
-
-black = {}
-  black[:king] = "\u265A"
-  black[:queen] = "\u265B"
-  black[:rook] = "\u265C"
-  black[:bishop] = "\u265D"
-  black[:knight] = "\u265E"
-  black[:pawn] = "\u265F"
-
-$pieces = {}
-$pieces[:white] = white
-$pieces[:black] = black
-
-
 class Piece
   attr_accessor :position
+  attr_reader :type, :color
 
   def initialize(color, position, type)
     @color = color
     @position = position
-    # Not sure if best way to do this
-    @display_character = $pieces[color][type]
+    @type = type
   end
 
-  def display_character
-    @display_character
-  end
-
-  def color
-    @color
+  def dup
+    return self.class.new(self.color, self.position)
   end
 
   def can_move_to?(board, end_location)
@@ -42,7 +17,6 @@ class Piece
   end
 
   def possible_moves(deltas, allowed_steps, board)
-
     possible_moves = []
     deltas.each do |delta|
       current_position = @position
@@ -60,7 +34,6 @@ class Piece
     end
     possible_moves
   end
-
 end
 
 class Pawn < Piece
@@ -69,15 +42,16 @@ class Pawn < Piece
   end
 
   def possible_moves(board)
-    #debugger
+    possible_moves = []
     forward_deltas = [[0,-1]]
     #let them move two if they are in starting rank
     allowed_steps = [1,6].include?(position[1]) ?  2 : 1
     #swap if black
     forward_deltas.map! { |delta| [delta[0],-delta[1]] } if @color == :black
-    possible_moves = super(forward_deltas, allowed_steps, board)
-
-
+    possible_forward_moves = super(forward_deltas, allowed_steps, board)
+    possible_forward_moves.each do |move|
+      possible_moves << move if board.piece_at(move).nil?
+    end
     take_deltas = [[1,-1], [-1,-1]]
     take_deltas.map! { |delta| [delta[0],-delta[1]] } if @color == :black
     possible_take_moves = super(take_deltas, 1, board)
@@ -88,7 +62,6 @@ class Pawn < Piece
     end
 
     possible_moves
-
   end
 end
 
@@ -146,4 +119,3 @@ class King < Piece
     super(deltas, 1, board)
   end
 end
-
