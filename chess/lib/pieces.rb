@@ -39,7 +39,8 @@ class Piece
 
   def can_move_to?(board, end_location)
     poss_moves = possible_moves(board)
-    debugger
+    print poss_moves
+    puts
     poss_moves.include?(end_location)
   end
 
@@ -48,7 +49,7 @@ class Piece
     possible_moves = []
     deltas.each do |delta|
       current_position = @position
-      max_number_of_moves.times do
+      allowed_steps.times do
         move = [delta, current_position].transpose.map {|x| x.reduce(:+)}
         #above, takes: [[a,b],[c,d]] => [[a+c], [b+d]]
         break unless board.move_on_board?(move)
@@ -70,21 +71,26 @@ class Pawn < Piece
     super(color, position, :pawn)
   end
 
-  def can_move_to?(board, end_location)
-    true
-  end
-
   def possible_moves(board)
-
-    forward_deltas = [[0,1]]
+    #debugger
+    forward_deltas = [[0,-1]]
     #let them move two if they are in starting rank
-    allowed_steps = [2,7].include?(position[1]) ?  2 : 1
+    allowed_steps = [1,6].include?(position[1]) ?  2 : 1
     #swap if black
-    deltas.map! { |delta| [delta[0],-delta[1]] } if @color == :black
+    forward_deltas.map! { |delta| [delta[0],-delta[1]] } if @color == :black
     possible_moves = super(forward_deltas, allowed_steps, board)
 
-    take_deltas = [[1,1], [-1,1]]
 
+    take_deltas = [[1,-1], [-1,-1]]
+    take_deltas.map! { |delta| [delta[0],-delta[1]] } if @color == :black
+    possible_take_moves = super(take_deltas, 1, board)
+    possible_take_moves.each do |move|
+      if !board.piece_at(move).nil? && board.piece_at(move).color != color
+        possible_moves << move
+      end
+    end
+
+    possible_moves
 
   end
 end
@@ -105,7 +111,7 @@ class Knight < Piece
     super(color, position, :knight)
   end
 
-  def possible_moves
+  def possible_moves(board)
     deltas = [[-2,-1], [-2,1], [2,-1], [2,1], [-1,2], [-1,-2], [1,2], [1,-2]]
     super(deltas, 1, board)
   end
@@ -116,7 +122,7 @@ class Bishop < Piece
     super(color, position, :bishop)
   end
 
-  def possible_moves
+  def possible_moves(board)
     deltas = [[-1,-1], [-1,1], [1,-1], [1,1]]
     super(deltas, 8, board)
   end
@@ -127,7 +133,7 @@ class Queen < Piece
     super(color, position, :queen)
   end
 
-  def possible_moves
+  def possible_moves(board)
     deltas = [[-1,-1], [-1,1], [1,-1], [1,1], [-1,0], [0,-1], [1,0], [0,1]]
     super(deltas, 8, board)
   end
@@ -138,7 +144,7 @@ class King < Piece
     super(color, position, :king)
   end
 
-  def possible_moves
+  def possible_moves(board)
     deltas = [[-1,-1], [-1,1], [1,-1], [1,1], [-1,0], [0,-1], [1,0], [0,1]]
     super(deltas, 1, board)
   end
