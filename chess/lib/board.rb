@@ -2,30 +2,35 @@ require 'debugger'
 class Board
   def initialize
     make_board
+    @captured_pieces = Hash.new([])
   end
 
   def display
     print "   "
     ("a".."h").each {|letter| print " #{letter.colorize(:red)} "}
     puts
-    @board.each_with_index do |row, y_index|
-      print " #{8-y_index} ".colorize(:red)
-      row.each_with_index do |tile, x_index|
+    @board.each_with_index do |row, rank|
+      print " #{8-rank} ".colorize(:red)
+      row.each_with_index do |tile, file|
         display_character = tile.nil? ? "   " : " #{tile.display_character} "
-        if (y_index + x_index).odd?
-          print display_character.colorize(:background => :red)
+        if (rank + file).odd?
+          print display_character.colorize(:background => :light_blue)
         else
-          print display_character
+          print display_character.colorize(:background => :light_white)
         end
       end
+      display_captured_pieces(:black) if rank == 7
+      display_captured_pieces(:white) if rank == 0
       puts
     end
+
   end
 
   def make_move(move, color)
     #move looks like this [[0,1],[7,4]]
     if valid_move?(move, color)
       piece = remove_piece(move[0])
+      capture_piece(move[1])
       place_piece(piece, move[1])
     end
     piece.position = move[1]
@@ -60,6 +65,19 @@ class Board
     @board[location[1]][location[0]] = piece
   end
 
+  def capture_piece(location)
+    unless piece_at(location).nil?
+      piece = remove_piece(location)
+      @captured_pieces[piece.color] += [piece]
+    end
+  end
+
+  def display_captured_pieces(color)
+    print "   "
+    @captured_pieces[color].each do |piece|
+      print " #{piece.display_character} "
+    end
+  end
 
   #creating the board helper functions below
   def make_board

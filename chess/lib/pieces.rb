@@ -38,10 +38,7 @@ class Piece
   end
 
   def can_move_to?(board, end_location)
-    poss_moves = possible_moves(board)
-    print poss_moves
-    puts
-    poss_moves.include?(end_location)
+    possible_moves(board).include?(end_location)
   end
 
   def possible_moves(deltas, allowed_steps, board)
