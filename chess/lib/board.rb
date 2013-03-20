@@ -19,7 +19,7 @@ class Board
           print display_character.colorize(:background => :light_white)
         end
       end
-      display_captured_pieces(:black) if rank == 7
+      display_captured_pieces(:black) if rank == 7 #REV: nice touch to display captured pieces
       display_captured_pieces(:white) if rank == 0
       puts
     end

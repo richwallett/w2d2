@@ -5,7 +5,7 @@ class Employee
     @name, @title, @salary = name, title, salary
   end
 
-  def boss=(boss)
+  def boss=(boss) #REV Could you make boss an accessor?
     @boss = boss
   end
 

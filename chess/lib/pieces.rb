@@ -92,7 +92,7 @@ class Pawn < Piece
   end
 end
 
-class Rook < Piece
+class Rook < Piece #REV smart choice to use vectors to explore possible moves
   def initialize(color, position)
     super(color, position, :rook)
   end

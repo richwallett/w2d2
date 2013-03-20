@@ -4,7 +4,7 @@ require 'debugger'
 load 'board.rb'
 
 
-class Chess
+class Chess #Rev great graphics. Really enjoyed playing this
 
   def initialize
     @board = Board.new
