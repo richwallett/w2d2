@@ -1,104 +1,70 @@
+require 'colorize'
+load 'pieces.rb'
+require 'debugger'
+load 'board.rb'
+
 
 class Chess
-  # has play loop
-  def initialize(player1, player2)
+
+  def initialize
     @board = Board.new
+    @player1 = HumanPlayer.new(:white)
+    @player2 = HumanPlayer.new(:black)
+  end
+
+  def play
+    until game_over?
+      @board.display
+      move = @player1.move(@board)
+      # 3 queries piece to see if move is legal (check?)
+      @board.make_move(move, @player1.color)
+      # 2 updates the piece with new position
+      @player1, @player2 = @player2, @player1 #switch players, repeat
+    end
+  end
+
+  private
+  def game_over?
+    false
   end
 end
 
 class HumanPlayer
-end
+  attr_reader :color
 
-class Board
-  def initialize
-    @board = make_board
-  end
-
-  def make_board
-    @board = []
-    8.times do
-      row = []
-      8.times {row << nil}
-      @board << row
-    end
-  end
-
-
-end
-
-class Piece
   def initialize(color)
     @color = color
   end
 
-  def color
-    @color
+  def move(board)
+    while true
+      move_string = ask_for_move
+      move = parse_move(move_string)
+      return move if board.valid_move?(move,@color)
+      puts "Please enter a valid move, #{@color.capitalize} Player."
+    end
   end
 
-  def king_in_check?
+  private
+
+  def ask_for_move
+    print "Enter move (e.g. 'a1 h5'): "
+    gets.chomp
+  end
+
+  def parse_move(move_string)
+    files = "abcdefgh" # files are columns
+    ranks = "87654321" # ranks are rows
+    moves = move_string.split(" ")
+    moves.map { |move| [files.index(move[0]), ranks.index(move[1])] }
   end
 end
 
-class Pawn < Piece
-  def initialize(color)
-    super(color)
-  end
 
-  def display
-    color == :white ? "\u2659" : "\u265F"
-  end
-end
-
-class Rook < Piece
-  def initialize(color)
-    super(color)
-  end
-
-  def display
-    color == :white ? "\u2656" : "\u265C"
-  end
-end
-
-class Bishop < Piece
-  def initialize(color)
-    super(color)
-  end
-
-  def display
-    color == :white ? "\u2657" : "\u265D"
-  end
-end
-
-class Knight < Piece
-  def initialize(color)
-    super(color)
-  end
-
-  def display
-    color == :white ? "\u2658" : "\u265E"
-  end
-end
-
-class King < Piece
-  def initialize(color)
-    super(color)
-  end
-
-  def display
-    color == :white ? "\u2654" : "\u265A"
-  end
-end
-
-class Queen < Piece
-  def initialize(color)
-    super(color)
-  end
-
-  def display
-    color == :white ? "\u2655" : "\u265B"
-  end
-end
 
 class MoveNode
   #used to build move tree to caclulate check/mate
 end
+
+chess = Chess.new
+chess.play
