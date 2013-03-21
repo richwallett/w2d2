@@ -19,14 +19,18 @@ class Chess
 
   def play(player1, player2)
     current_player, next_player = player1, player2
+    in_check = false
     until game_over?
       @board.display
-      puts "Checkmate!  #{next_player.color} wins!" if @board.checkmate?(current_player.color)
-      move = current_player.move(@board)
+      if @board.checkmate?(current_player.color)
+        puts "Checkmate!  #{next_player.color} wins!"
+        break
+      end
+      move = current_player.move(@board, in_check)
       unless @board.check?(move, current_player.color)
         @board.make_move(move, current_player.color)
       end
-
+      in_check = @board.check?(move,next_player.color)
       #check if next_player in check & if in checkmate, then end game.
       current_player, next_player = next_player, current_player
     end
@@ -46,14 +50,14 @@ class HumanPlayer
     @color = color
   end
 
-  def move(board)
+  def move(board, in_check)
     while true
-      puts "#{@color.capitalize} Player's turn:"
+      puts "#{@color.capitalize} Player's turn#{" (you are in check)" if in_check}."
       move_string = ask_for_move
       move = parse_move(move_string)
       in_check = board.check?(move, @color)
       return move if board.valid_move?(move,@color) && !in_check
-      puts "Please enter a valid move, #{@color.capitalize} Player."
+      puts "Please enter a valid move, #{@color.capitalize} Player  (e.g. 'b1 c3')."
       puts "(You are in check.)" if in_check
     end
   end
@@ -61,7 +65,7 @@ class HumanPlayer
   private
 
   def ask_for_move
-    print "Enter move (e.g. 'b1 c3'): "
+    print "Enter move: "
     gets.chomp
   end
 
@@ -70,6 +74,15 @@ class HumanPlayer
     ranks = "87654321" # ranks are rows
     moves = move_string.split(" ")
     moves.map { |move| [files.index(move[0]), ranks.index(move[1])] }
+  end
+
+  def format_correct?(move_string)
+    files = "abcdefgh" # files are columns
+    ranks = "87654321" # ranks are rows
+    return false unless move_string.length == 5 && move_string[2] == " " &&
+      files.include?(move_string[0]) && files.include?(move_string[3]) &&
+      ranks.include?(move_string[2]) && ranks.include?(move_string[4])
+    true
   end
 end
 

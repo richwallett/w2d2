@@ -24,6 +24,7 @@ class Piece
         move = [delta, current_position].transpose.map {|x| x.reduce(:+)}
         #above, takes: [[a,b],[c,d]] => [[a+c], [b+d]]
         break unless board.move_on_board?(move)
+        #if elsif
         possible_moves << move if board.piece_at(move).nil?
         if !board.piece_at(move).nil?
           possible_moves << move if board.piece_at(move).color != self.color
@@ -41,7 +42,7 @@ class Pawn < Piece
     super(color, position, :pawn)
   end
 
-  def possible_moves(board)
+  def possible_moves(board)  #Break @ swap if black
     possible_moves = []
     forward_deltas = [[0,-1]]
     #let them move two if they are in starting rank

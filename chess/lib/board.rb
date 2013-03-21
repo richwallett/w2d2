@@ -3,7 +3,7 @@ require 'debugger'
 
 
 class Board
-  attr_accessor :tiles
+  attr_accessor :grid
 
   def initialize
     make_board
@@ -15,7 +15,7 @@ class Board
     print "   ".colorize(:background => :white)
     ("a".."h").each {|letter| print " #{letter} ".colorize(:red).colorize(:background => :white)}
     puts
-    @tiles.each_with_index do |row, rank|
+    @grid.each_with_index do |row, rank|
       print " #{8-rank} ".colorize(:red).colorize(:background => :white)
       row.each_with_index do |tile, file|
         unless tile.nil?
@@ -62,12 +62,12 @@ class Board
   end
 
   def check?(move, color)
-    duped_board = dup
+    duped_board = self.dup
     duped_board.make_move(move, color)
-    duped_board.tiles.each do |row|
+    king_position = duped_board.find_king_position(color)
+    duped_board.grid.each do |row|
       row.each do |piece|
         unless piece.nil? || piece.color == color
-          king_position = duped_board.find_king_position(color)
           return true if piece.can_move_to?(duped_board, king_position)
         end
       end
@@ -75,9 +75,19 @@ class Board
     false
   end
 
+
+  def checkmate?(color)
+    moves = all_moves(color)
+    moves.each do |move|
+      return false if !check?(move, color)
+    end
+    true
+  end
+
+
   def all_moves(color)
     all_moves = []
-    @tiles.each do |row|
+    @grid.each do |row|
       row.each do |piece|
         next if piece.nil? || piece.color != color
         piece.possible_moves(self).each do |end_position|
@@ -88,22 +98,14 @@ class Board
     all_moves
   end
 
-  def checkmate?(color)
-    moves = all_moves(color)
-    moves.each do |move|
-      return false if !check?(move, color)
-    end
-    true
-  end
-
   def dup
     duped_board = Board.new
-    duped_board.tiles = deep_dup(@tiles)
+    duped_board.grid = deep_dup(@grid)
     duped_board
   end
 
   def find_king_position(color)
-    @tiles.each do |row|
+    @grid.each do |row|
       row.each do |piece|
         next if piece.nil?
         return piece.position if (piece.class == King && piece.color == color)
@@ -115,11 +117,11 @@ class Board
   private
 
   def [](location)
-    @tiles[location[1]][location[0]]
+    @grid[location[1]][location[0]]
   end
 
   def []=(location, new_value) # self[location] = new_value
-    @tiles[location[1]][location[0]] = new_value
+    @grid[location[1]][location[0]] = new_value
   end
 
   def deep_dup(board)
@@ -165,27 +167,27 @@ class Board
   end
 
   def make_blank_board
-    tiles = []
+    grid = []
     8.times do
       row = []
       8.times {row << nil}
-      tiles << row
+      grid << row
     end
-    @tiles = tiles
+    @grid = grid
   end
 
   def populate_board
     back_row = [Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook]
-    @tiles.each_with_index do |row, rank|
+    @grid.each_with_index do |row, rank|
       color = :black if [0,1].include?(rank)
       color = :white if [6,7].include?(rank)
 
       row.each_with_index do |tile, file|
         position = [file, rank]
         if [0,7].include?(rank)
-          @tiles[rank][file] = back_row[file].new(color, position)
+          @grid[rank][file] = back_row[file].new(color, position)
         elsif [1,6].include?(rank)
-          @tiles[rank][file] = Pawn.new(color, position)
+          @grid[rank][file] = Pawn.new(color, position)
         end
       end
     end
